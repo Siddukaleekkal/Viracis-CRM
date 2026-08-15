@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { cookies, headers } from 'next/headers'
+import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 
 export async function login(formData: FormData) {
@@ -12,17 +12,6 @@ export async function login(formData: FormData) {
   if (!emailInput || !passwordInput) {
     redirect('/login?error=' + encodeURIComponent('Please provide both email and password.'))
   }
-
-  // Determine active protocol and host to build strict redirect URL
-  const headerList = await headers()
-  const rawHost = headerList.get('x-forwarded-host') || headerList.get('host') || 'www.viracis.com'
-  const proto = headerList.get('x-forwarded-proto') || 'https'
-
-  let targetHost = rawHost
-  if (targetHost.includes('app.viracis.com')) {
-    targetHost = 'www.viracis.com'
-  }
-  const destinationUrl = `${proto}://${targetHost}/dashboard`
 
   // Supabase Auth Integration if configured
   if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
@@ -47,7 +36,7 @@ export async function login(formData: FormData) {
           maxAge: 60 * 60 * 24 * 7,
         })
         revalidatePath('/dashboard', 'layout')
-        redirect(destinationUrl)
+        redirect('/dashboard')
       }
     } catch (e) {
       console.error('Supabase auth error:', e)
@@ -79,7 +68,8 @@ export async function login(formData: FormData) {
   })
 
   revalidatePath('/dashboard', 'layout')
-  redirect(destinationUrl)
+  redirect('/dashboard')
 }
+
 
 
