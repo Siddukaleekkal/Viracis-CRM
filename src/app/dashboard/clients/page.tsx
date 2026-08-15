@@ -310,6 +310,9 @@ export default function CustomersPage() {
         })
       }
 
+      const dummyNames = new Set(['robert taylor', 'sarah jenkins', 'marcus vance', 'elena rostova', 'david miller'])
+      customerList = customerList.filter((c) => !dummyNames.has(c.name.toLowerCase()))
+
       setCustomers(customerList)
     } catch (e) {
       console.error('Failed to load customers and map pins:', e)
@@ -782,6 +785,30 @@ export default function CustomersPage() {
                 {tab}
               </button>
             ))}
+
+            {/* Select All Button next to status tabs */}
+            <button
+              onClick={toggleSelectAll}
+              className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all whitespace-nowrap flex items-center gap-1.5 ${
+                selectedCustomerIds.length > 0 && selectedCustomerIds.length === filteredCustomers.length && filteredCustomers.length > 0
+                  ? 'bg-blue-600 text-white shadow-sm font-bold'
+                  : selectedCustomerIds.length > 0
+                    ? 'bg-blue-100 text-blue-800 border border-blue-200 font-bold'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+              }`}
+              title="Toggle Select All Clients"
+            >
+              <input
+                type="checkbox"
+                checked={selectedCustomerIds.length > 0 && selectedCustomerIds.length === filteredCustomers.length && filteredCustomers.length > 0}
+                onChange={() => {}}
+                className="w-3.5 h-3.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer pointer-events-none"
+              />
+              <span>
+                Select All
+                {selectedCustomerIds.length > 0 ? ` (${selectedCustomerIds.length})` : ''}
+              </span>
+            </button>
           </div>
 
           <div className="relative min-w-[260px]">
@@ -855,12 +882,12 @@ export default function CustomersPage() {
                 </button>
               </div>
 
-              {/* Mass Delete Button */}
+              {/* Delete Button */}
               <button
                 onClick={() => setIsBulkDeleteModalOpen(true)}
                 className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs rounded-xl shadow-sm transition-colors"
               >
-                Mass Delete
+                Delete
               </button>
 
               {/* Deselect All */}
@@ -876,6 +903,7 @@ export default function CustomersPage() {
 
         {/* Mobile Ultra-Compact Collapsible Card Feed View (Shown on Mobile Viewports) */}
         <div className="space-y-2 md:hidden">
+
           {filteredCustomers.length === 0 ? (
             <div className="bg-white p-6 rounded-2xl border border-slate-200 text-center space-y-2">
               <p className="text-xs font-semibold text-slate-600">No client accounts found.</p>
@@ -1159,8 +1187,8 @@ export default function CustomersPage() {
 
         {/* Schedule Job Date Modal */}
         {scheduleModalCustomer && (
-          <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-white rounded-xl p-6 max-w-sm w-full shadow-2xl space-y-4">
+          <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 pb-20 md:pb-4">
+            <div className="bg-white rounded-xl p-6 max-w-sm w-full shadow-2xl space-y-4 max-h-[calc(100dvh-120px)] overflow-y-auto my-auto">
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div>
                   <h3 className="font-bold text-slate-900 text-sm">Schedule Service Date</h3>
@@ -1238,8 +1266,8 @@ export default function CustomersPage() {
 
         {/* Delete Confirmation Modal */}
         {customerToDelete && (
-          <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-white rounded-xl p-6 max-w-sm w-full shadow-2xl space-y-4">
+          <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 pb-20 md:pb-4">
+            <div className="bg-white rounded-xl p-6 max-w-sm w-full shadow-2xl space-y-4 my-auto">
               <div className="flex items-center gap-3 text-red-600">
                 <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
                   <svg className="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1277,8 +1305,8 @@ export default function CustomersPage() {
 
         {/* Mass Delete Confirmation Modal */}
         {isBulkDeleteModalOpen && (
-          <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl space-y-4">
+          <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 pb-20 md:pb-4">
+            <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl space-y-4 my-auto">
               <div className="flex items-center gap-3 text-red-600">
                 <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
                   <svg className="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1286,7 +1314,7 @@ export default function CustomersPage() {
                   </svg>
                 </div>
                 <div>
-                  <h3 className="font-bold text-slate-900 text-sm">Confirm Mass Deletion</h3>
+                  <h3 className="font-bold text-slate-900 text-sm">Confirm Deletion</h3>
                   <p className="text-[11px] text-slate-500">Permanently delete selected accounts</p>
                 </div>
               </div>
@@ -1304,7 +1332,7 @@ export default function CustomersPage() {
                   onClick={handleBulkDelete}
                   className="px-5 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl shadow-sm transition-colors"
                 >
-                  Yes, Mass Delete
+                  Yes, Delete
                 </button>
               </div>
             </div>
@@ -1313,8 +1341,8 @@ export default function CustomersPage() {
 
         {/* CSV Data Import Modal */}
         {isImportModalOpen && (
-          <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-white rounded-xl p-6 sm:p-8 max-w-lg w-full shadow-2xl space-y-5">
+          <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 pb-20 md:pb-4">
+            <div className="bg-white rounded-xl p-6 sm:p-8 max-w-lg w-full shadow-2xl space-y-5 max-h-[calc(100dvh-120px)] overflow-y-auto my-auto">
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div>
                   <h2 className="text-base font-bold text-slate-900">Import CSV Customer Data</h2>
@@ -1370,68 +1398,68 @@ export default function CustomersPage() {
 
         {/* Add Client Modal */}
         {isModalOpen && (
-          <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-            <div className="bg-white rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h2 className="text-base font-bold text-slate-900">Add New Client</h2>
-                <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600 text-lg font-bold">
+          <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 pb-16 md:pb-4">
+            <div className="bg-white rounded-2xl p-4 sm:p-5 max-w-md w-full shadow-2xl space-y-2.5 my-auto">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                <h2 className="text-sm font-bold text-slate-900">Add New Client</h2>
+                <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600 text-base font-bold">
                   ✕
                 </button>
               </div>
 
-              <form onSubmit={handleAddCustomer} className="space-y-4 text-xs">
+              <form onSubmit={handleAddCustomer} className="space-y-2 text-xs">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">Full Name</label>
+                  <label className="block text-[10px] font-bold text-slate-700 uppercase mb-0.5">Full Name *</label>
                   <input
                     type="text"
                     required
                     placeholder="e.g. John Smith"
                     value={newCustomer.name}
                     onChange={(e) => setNewCustomer({ ...newCustomer, name: e.target.value })}
-                    className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 outline-none focus:ring-2 focus:ring-slate-900 font-semibold"
+                    className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 outline-none focus:ring-2 focus:ring-slate-900 font-semibold"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">Email</label>
+                  <label className="block text-[10px] font-bold text-slate-700 uppercase mb-0.5">Email Address</label>
                   <input
                     type="email"
                     placeholder="john@example.com"
                     value={newCustomer.email}
                     onChange={(e) => setNewCustomer({ ...newCustomer, email: e.target.value })}
-                    className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 outline-none focus:ring-2 focus:ring-slate-900 font-medium"
+                    className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 outline-none focus:ring-2 focus:ring-slate-900 font-medium"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">Phone Number</label>
+                  <label className="block text-[10px] font-bold text-slate-700 uppercase mb-0.5">Phone Number</label>
                   <input
                     type="text"
                     placeholder="(804) 555-0100"
                     value={newCustomer.phone}
                     onChange={(e) => setNewCustomer({ ...newCustomer, phone: e.target.value })}
-                    className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 outline-none focus:ring-2 focus:ring-slate-900 font-medium"
+                    className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 outline-none focus:ring-2 focus:ring-slate-900 font-medium"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">Full Property Address</label>
+                  <label className="block text-[10px] font-bold text-slate-700 uppercase mb-0.5">Full Property Address</label>
                   <input
                     type="text"
                     placeholder="123 Main St, Richmond, VA 23220"
                     value={newCustomer.address}
                     onChange={(e) => setNewCustomer({ ...newCustomer, address: e.target.value })}
-                    className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 outline-none focus:ring-2 focus:ring-slate-900 font-medium"
+                    className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 outline-none focus:ring-2 focus:ring-slate-900 font-medium"
                   />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-2.5">
                   <div className="min-w-0">
-                    <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">Service Type</label>
+                    <label className="block text-[10px] font-bold text-slate-700 uppercase mb-0.5">Service Type</label>
                     <select
                       value={newCustomer.service}
                       onChange={(e) => setNewCustomer({ ...newCustomer, service: e.target.value })}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 outline-none focus:ring-2 focus:ring-slate-900 font-bold cursor-pointer"
+                      className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 outline-none focus:ring-2 focus:ring-slate-900 font-bold cursor-pointer"
                     >
                       <option value="Exterior Power Wash">Exterior Power Wash</option>
                       <option value="House Soft Wash">House Soft Wash</option>
@@ -1444,35 +1472,35 @@ export default function CustomersPage() {
                   </div>
 
                   <div className="min-w-0">
-                    <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">Quote Value ($)</label>
+                    <label className="block text-[10px] font-bold text-slate-700 uppercase mb-0.5">Quote Value ($)</label>
                     <input
                       type="text"
                       placeholder="350.00"
                       value={newCustomer.amount}
                       onChange={(e) => setNewCustomer({ ...newCustomer, amount: e.target.value })}
-                      className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 outline-none focus:ring-2 focus:ring-slate-900 font-semibold"
+                      className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 outline-none focus:ring-2 focus:ring-slate-900 font-semibold"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">Property Notes & Instructions</label>
-                  <textarea
-                    rows={3}
-                    placeholder="e.g. Gate code #1234, customer requested eco-friendly wash for rear patio deck..."
+                  <label className="block text-[10px] font-bold text-slate-700 uppercase mb-0.5">Property Notes & Instructions</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Gate code #1234, eco-friendly wash..."
                     value={newCustomer.notes}
                     onChange={(e) => setNewCustomer({ ...newCustomer, notes: e.target.value })}
-                    className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 outline-none focus:ring-2 focus:ring-slate-900 font-medium resize-none"
+                    className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 outline-none focus:ring-2 focus:ring-slate-900 font-medium"
                   />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-2.5">
                   <div className="min-w-0">
-                    <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">Account Status</label>
+                    <label className="block text-[10px] font-bold text-slate-700 uppercase mb-0.5">Account Status</label>
                     <select
                       value={newCustomer.status}
                       onChange={(e) => setNewCustomer({ ...newCustomer, status: e.target.value as any })}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 outline-none focus:ring-2 focus:ring-slate-900 font-bold cursor-pointer"
+                      className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 outline-none focus:ring-2 focus:ring-slate-900 font-bold cursor-pointer"
                     >
                       <option value="Quoted">Quoted</option>
                       <option value="Scheduled">Scheduled</option>
@@ -1480,27 +1508,27 @@ export default function CustomersPage() {
                     </select>
                   </div>
                   <div className="min-w-0">
-                    <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">Service Date</label>
+                    <label className="block text-[10px] font-bold text-slate-700 uppercase mb-0.5">Service Date</label>
                     <input
                       type="date"
                       value={newCustomer.serviceDate}
                       onChange={(e) => setNewCustomer({ ...newCustomer, serviceDate: e.target.value })}
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 outline-none focus:ring-2 focus:ring-slate-900 font-semibold min-w-0"
+                      className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 outline-none focus:ring-2 focus:ring-slate-900 font-semibold min-w-0"
                     />
                   </div>
                 </div>
 
-                <div className="pt-3 flex items-center justify-end gap-3 border-t border-slate-100">
+                <div className="pt-2 flex items-center justify-end gap-2.5 border-t border-slate-100 bg-white">
                   <button
                     type="button"
                     onClick={() => setIsModalOpen(false)}
-                    className="px-4 py-2 bg-slate-100 text-slate-700 text-xs font-semibold rounded-xl hover:bg-slate-200 transition-colors"
+                    className="px-3.5 py-1.5 bg-slate-100 text-slate-700 text-xs font-semibold rounded-xl hover:bg-slate-200 transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl shadow-sm transition-colors"
+                    className="px-4 py-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl shadow-sm transition-colors"
                   >
                     Save Customer
                   </button>
@@ -1512,8 +1540,8 @@ export default function CustomersPage() {
 
         {/* Client Profile Modal ("Blow up profile") */}
         {selectedCustomerProfile && (
-          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
-            <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-2xl w-full shadow-2xl space-y-6 max-h-[92vh] overflow-y-auto relative animate-in fade-in zoom-in-95 duration-200">
+          <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto pb-20 md:pb-4">
+            <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-2xl w-full shadow-2xl space-y-6 max-h-[calc(100dvh-120px)] md:max-h-[92vh] overflow-y-auto relative animate-in fade-in zoom-in-95 duration-200 my-auto">
 
               {/* Header */}
               <div className="flex items-start justify-between border-b border-slate-100 pb-4">

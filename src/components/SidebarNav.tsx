@@ -87,11 +87,10 @@ export function SidebarNav({ activeMessageCount = 0 }: SidebarNavProps) {
             key={link.name}
             href={link.href}
             onClick={() => setOptimisticPath(link.href)}
-            className={`flex items-center justify-between px-3.5 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 ${
-              isActive
+            className={`flex items-center justify-between px-3.5 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 ${isActive
                 ? 'bg-slate-800 text-white shadow-sm font-bold border border-slate-700/50'
                 : 'text-slate-400 hover:bg-slate-900 hover:text-slate-200'
-            }`}
+              }`}
           >
             <div className="flex items-center gap-3">
               <span className={isActive ? 'text-white' : 'text-slate-500 group-hover:text-slate-400'}>
@@ -100,9 +99,8 @@ export function SidebarNav({ activeMessageCount = 0 }: SidebarNavProps) {
               <span>{link.name}</span>
             </div>
             {link.badge !== null && link.badge !== undefined && (
-              <span className={`px-2 py-0.5 text-[11px] font-bold rounded-full ${
-                isActive ? 'bg-slate-700 text-white' : 'bg-slate-900 text-slate-400 border border-slate-800'
-              }`}>
+              <span className={`px-2 py-0.5 text-[11px] font-bold rounded-full ${isActive ? 'bg-slate-700 text-white' : 'bg-slate-900 text-slate-400 border border-slate-800'
+                }`}>
                 {link.badge}
               </span>
             )}
