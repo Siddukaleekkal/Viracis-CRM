@@ -1,7 +1,5 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { createClient } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 import { SidebarNav } from '@/components/SidebarNav'
@@ -16,18 +14,7 @@ export default async function DashboardLayout({
   const isDevAuth = cookieStore.get('viracis_dev_auth')?.value === 'authenticated'
   const userEmail = cookieStore.get('viracis_user_email')?.value
 
-  let user = null
-  if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
-    try {
-      const supabase = await createClient()
-      const { data } = await supabase.auth.getUser()
-      user = data.user
-    } catch (e) {
-      console.error('Supabase get user error:', e)
-    }
-  }
-
-  const isAuthenticated = isDevAuth || !!userEmail || !!user
+  const isAuthenticated = isDevAuth || !!userEmail
 
   if (!isAuthenticated) {
     redirect('/login')
@@ -100,3 +87,4 @@ export default async function DashboardLayout({
     </div>
   )
 }
+
