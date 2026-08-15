@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { getTenantConfig, getActiveTenantEmailFromCookie } from '@/lib/tenant'
+import { getTenantConfig, getActiveTenantEmailFromCookie, TENANTS } from '@/lib/tenant'
 import CrmSoftphoneDialer from '@/components/CrmSoftphoneDialer'
 import CrmQuickMessageModal from '@/components/CrmQuickMessageModal'
 
@@ -103,7 +103,7 @@ const geocodeAddress = async (fullAddress: string): Promise<GeocodeResult | null
 }
 
 export default function CustomersPage() {
-  const [tenant, setTenant] = useState(() => getTenantConfig(getActiveTenantEmailFromCookie()))
+  const [tenant, setTenant] = useState(TENANTS.viracis)
   const [customers, setCustomers] = useState<Customer[]>([])
   const [filter, setFilter] = useState<string>('All')
   const [search, setSearch] = useState('')

@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { getTenantConfig, getActiveTenantEmailFromCookie } from '@/lib/tenant'
+import { getTenantConfig, getActiveTenantEmailFromCookie, TENANTS } from '@/lib/tenant'
 
 export default function DashboardPage() {
-  const [tenant, setTenant] = useState(() => getTenantConfig(getActiveTenantEmailFromCookie()))
+  const [tenant, setTenant] = useState(TENANTS.viracis)
   const [customerCount, setCustomerCount] = useState(0)
   const [completedRevenue, setCompletedRevenue] = useState(0)
   const [scheduledRevenue, setScheduledRevenue] = useState(0)
