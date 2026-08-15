@@ -14,6 +14,7 @@ export default async function DashboardLayout({
 }) {
   const cookieStore = await cookies()
   const isDevAuth = cookieStore.get('viracis_dev_auth')?.value === 'authenticated'
+  const userEmail = cookieStore.get('viracis_user_email')?.value
 
   let user = null
   if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
@@ -26,7 +27,7 @@ export default async function DashboardLayout({
     }
   }
 
-  const isAuthenticated = isDevAuth || !!user
+  const isAuthenticated = isDevAuth || !!userEmail || !!user
 
   if (!isAuthenticated) {
     redirect('/login')
