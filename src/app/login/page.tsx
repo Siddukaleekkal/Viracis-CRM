@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { setAuthCookies } from './actions'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -10,7 +11,7 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setLoading(true)
@@ -31,13 +32,21 @@ export default function LoginPage() {
       resolvedEmail = 'omar@wizardwashva.com'
     }
 
-    // Set authentication cookies for current domain
-    document.cookie = `viracis_dev_auth=authenticated; path=/; max-age=604800; SameSite=Lax`
-    document.cookie = `viracis_user_email=${encodeURIComponent(resolvedEmail)}; path=/; max-age=604800; SameSite=Lax`
+    // Set client cookies with Secure flag for HTTPS
+    const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:' ? '; Secure' : ''
+    document.cookie = `viracis_dev_auth=authenticated; path=/; max-age=604800; SameSite=Lax${isSecure}`
+    document.cookie = `viracis_user_email=${encodeURIComponent(resolvedEmail)}; path=/; max-age=604800; SameSite=Lax${isSecure}`
+
+    try {
+      await setAuthCookies(resolvedEmail)
+    } catch (e) {
+      console.error('Server cookie error:', e)
+    }
 
     // Relative browser navigation on current host domain
     window.location.href = '/dashboard'
   }
+
 
   return (
     <div className="min-h-screen flex items-center justify-center relative bg-[#FAFAFA] overflow-hidden font-sans">
