@@ -44,7 +44,7 @@ export default function LoginPage() {
     }
 
     // Relative browser navigation on current host domain
-    window.location.href = '/dashboard'
+    window.location.href = '/dashboard/clients'
   }
 
 
