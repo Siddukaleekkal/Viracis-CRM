@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Viracis LinkedIn Banner</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+  body {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #f0f2f5;
+  }
+
+  /* LinkedIn banner standard dimensions are 1584x396 (4:1 aspect ratio) */
+  .banner-container {
+    width: 1584px;
+    height: 396px;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(180deg, #060b19 0%, #173260 100%);
+    font-family: 'Inter', sans-serif;
+    color: #ffffff;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+  }
+
+  /* Stars */
+  .stars {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    background-image: 
+      radial-gradient(1px 1px at 20px 30px, #ffffff, rgba(0,0,0,0)),
+      radial-gradient(1.5px 1.5px at 120px 70px, #ffffff, rgba(0,0,0,0)),
+      radial-gradient(1px 1px at 90px 140px, #ffffff, rgba(0,0,0,0)),
+      radial-gradient(2px 2px at 160px 220px, rgba(255,255,255,0.8), rgba(0,0,0,0)),
+      radial-gradient(1px 1px at 250px 50px, #ffffff, rgba(0,0,0,0)),
+      radial-gradient(1px 1px at 320px 180px, #ffffff, rgba(0,0,0,0)),
+      radial-gradient(1.5px 1.5px at 420px 80px, #ffffff, rgba(0,0,0,0)),
+      radial-gradient(1px 1px at 550px 150px, #ffffff, rgba(0,0,0,0)),
+      radial-gradient(2px 2px at 600px 40px, rgba(255,255,255,0.9), rgba(0,0,0,0)),
+      radial-gradient(1px 1px at 700px 220px, #ffffff, rgba(0,0,0,0)),
+      radial-gradient(1.5px 1.5px at 850px 90px, #ffffff, rgba(0,0,0,0)),
+      radial-gradient(1px 1px at 900px 250px, #ffffff, rgba(0,0,0,0)),
+      radial-gradient(2px 2px at 1050px 60px, rgba(255,255,255,0.7), rgba(0,0,0,0)),
+      radial-gradient(1px 1px at 1150px 180px, #ffffff, rgba(0,0,0,0)),
+      radial-gradient(1.5px 1.5px at 1300px 50px, #ffffff, rgba(0,0,0,0)),
+      radial-gradient(1px 1px at 1450px 130px, #ffffff, rgba(0,0,0,0)),
+      radial-gradient(2px 2px at 1550px 200px, #ffffff, rgba(0,0,0,0));
+    background-repeat: repeat;
+    background-size: 1584px 396px;
+    opacity: 0.8;
+  }
+
+  /* Shooting stars */
+  .shooting-star {
+    position: absolute;
+    top: 60px;
+    right: 400px;
+    width: 200px;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 100%);
+    transform: rotate(-20deg);
+    opacity: 0.7;
+  }
+  
+  .shooting-star::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: -1.5px;
+    width: 4px;
+    height: 4px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 8px 2px rgba(255, 255, 255, 0.8);
+  }
+
+  .shooting-star-2 {
+    top: -20px;
+    right: 800px;
+    width: 120px;
+    transform: rotate(-25deg);
+    opacity: 0.5;
+  }
+
+  /* Clouds background (Darker layer) */
+  .clouds-bg {
+    position: absolute;
+    bottom: -120px;
+    left: 0;
+    width: 100%;
+    height: 350px;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%231a3866" fill-opacity="1" d="M0,192L48,197.3C96,203,192,213,288,208C384,203,480,181,576,181.3C672,181,768,203,864,197.3C960,192,1056,160,1152,149.3C1248,139,1344,149,1392,154.7L1440,160L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>');
+    background-size: cover;
+    background-position: bottom;
+  }
+
+  /* Clouds midground */
+  .clouds-mid {
+    position: absolute;
+    bottom: -100px;
+    left: -10%;
+    width: 120%;
+    height: 300px;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23102447" fill-opacity="1" d="M0,160L60,170.7C120,181,240,203,360,202.7C480,203,600,181,720,181.3C840,181,960,203,1080,213.3C1200,224,1320,224,1380,224L1440,224L1440,320L1380,320C1320,320,1200,320,1080,320C960,320,840,320,720,320C600,320,480,320,360,320C240,320,120,320,60,320L0,320Z"></path></svg>');
+    background-size: cover;
+    background-position: bottom;
+  }
+
+  /* Clouds foreground */
+  .clouds-fg {
+    position: absolute;
+    bottom: -80px;
+    left: 0;
+    width: 100%;
+    height: 250px;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23061226" fill-opacity="1" d="M0,256L48,245.3C96,235,192,213,288,208C384,203,480,213,576,213.3C672,213,768,203,864,213.3C960,224,1056,256,1152,250.7C1248,245,1344,203,1392,181.3L1440,160L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>');
+    background-size: cover;
+    background-position: bottom;
+  }
+
+  /* Center Content */
+  .content {
+    position: absolute;
+    top: 45%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .brand-group {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: 12px;
+  }
+
+  /* Inline SVG logo that matches the Viracis geometric look */
+  .logo-svg {
+    width: 58px;
+    height: 58px;
+  }
+
+  .company-name {
+    font-size: 64px;
+    font-weight: 600;
+    letter-spacing: -1px;
+    margin: 0;
+    color: #ffffff;
+    text-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  }
+
+  .tagline {
+    font-size: 26px;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+    color: #e2e8f0;
+    margin: 0;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  }
+
+</style>
+</head>
+<body>
+
+<!-- Capture this container to get your 1584x396 LinkedIn banner -->
+<div class="banner-container">
+  
+  <!-- Night Sky Elements -->
+  <div class="stars"></div>
+  <div class="shooting-star"></div>
+  <div class="shooting-star shooting-star-2"></div>
+  
+  <!-- Cloud Layers -->
+  <div class="clouds-bg"></div>
+  <div class="clouds-mid"></div>
+  <div class="clouds-fg"></div>
+
+  <!-- Central Brand Details -->
+  <div class="content">
+    <div class="brand-group">
+      <!-- Minimalist Hexagon Logo Concept -->
+      <svg class="logo-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M50 5L88.9711 27.5V72.5L50 95L11.0289 72.5V27.5L50 5Z" stroke="#38BDF8" stroke-width="8" stroke-linejoin="round"/>
+        <path d="M50 22L74.2487 36V64L50 78L25.7513 64V36L50 22Z" stroke="#FFFFFF" stroke-width="6" stroke-linejoin="round"/>
+        <path d="M50 38L62.1244 45V59L50 66L37.8756 59V45L50 38Z" fill="#38BDF8"/>
+      </svg>
+      <h1 class="company-name">Viracis</h1>
+    </div>
+    <p class="tagline">Strategic Tech Solutions for Your Success</p>
+  </div>
+</div>
+
+</body>
+</html>

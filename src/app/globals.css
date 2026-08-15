@@ -1,0 +1,109 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html, body {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  overflow-x: hidden;
+  touch-action: manipulation;
+  width: 100%;
+}
+
+body {
+  background: #ffffff;
+  color: #0A2540;
+  font-family: var(--font-ibm-plex-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Prevent iOS Safari auto-zoom on form inputs & selects */
+@media screen and (max-width: 768px) {
+  input[type="text"],
+  input[type="number"],
+  input[type="email"],
+  input[type="password"],
+  input[type="date"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Enterprise Blog Typography */
+.article-content {
+  line-height: 1.8;
+  color: #374151; /* gray-700 */
+}
+
+.article-content h1, 
+.article-content h2, 
+.article-content h3, 
+.article-content h4 {
+  color: #0A2540; /* viracis-navy */
+  font-weight: 700;
+  line-height: 1.2;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+.article-content h2 { font-size: 1.5rem; }
+.article-content h3 { font-size: 1.25rem; }
+
+.article-content p {
+  margin-bottom: 1.25rem;
+  font-size: 1rem;
+}
+
+.article-content ul, 
+.article-content ol {
+  margin-bottom: 1.25rem;
+  padding-left: 1.25rem;
+  list-style-position: outside;
+}
+
+.article-content ul { list-style-type: disc; }
+.article-content ol { list-style-type: decimal; }
+
+.article-content li {
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
+}
+
+.article-content blockquote {
+  border-left: 4px solid #0099B8;
+  padding-left: 1.25rem;
+  font-style: italic;
+  font-size: 1.05rem;
+  margin: 2rem 0;
+  color: #4b5563;
+}
+
+.article-content strong {
+  color: #0A2540;
+  font-weight: 700;
+}
+
+/* Desktop typography scale-up */
+@media (min-width: 768px) {
+  .article-content h2 { font-size: 2rem; }
+  .article-content h3 { font-size: 1.5rem; }
+  .article-content p { font-size: 1.125rem; }
+  .article-content li { font-size: 1.125rem; }
+  .article-content blockquote { font-size: 1.25rem; padding-left: 1.5rem; }
+  .article-content h1,
+  .article-content h2,
+  .article-content h3,
+  .article-content h4 {
+    margin-top: 2.5rem;
+    margin-bottom: 1.25rem;
+  }
+}
