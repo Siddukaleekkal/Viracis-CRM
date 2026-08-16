@@ -71,16 +71,16 @@ export default function LoginPage() {
       <div className="relative z-10 w-full max-w-[440px] p-6 sm:p-10">
         
         <div className="flex justify-center mb-8">
-          <Link href="/">
+          <a href="https://viracis.com">
             <Image
               src="/viracis-logo.png"
               alt="Viracis"
               width={160}
               height={50}
-              className="h-9 w-auto object-contain"
+              className="h-9 w-auto object-contain hover:opacity-90 transition-opacity"
               priority
             />
-          </Link>
+          </a>
         </div>
 
         <div className="bg-white/80 backdrop-blur-xl border border-gray-200/60 shadow-[0_8px_40px_-12px_rgba(0,0,0,0.1)] rounded-2xl p-8 sm:p-10">
