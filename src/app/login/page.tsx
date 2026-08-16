@@ -32,10 +32,13 @@ export default function LoginPage() {
       resolvedEmail = 'omar@wizardwashva.com'
     }
 
-    // Set client cookies with Secure flag for HTTPS
+    // Set client cookies with domain=.viracis.com for cross-subdomain authentication
+    const isViracisDomain = typeof window !== 'undefined' && window.location.hostname.includes('viracis.com')
+    const domainAttr = isViracisDomain ? '; domain=.viracis.com' : ''
     const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:' ? '; Secure' : ''
-    document.cookie = `viracis_dev_auth=authenticated; path=/; max-age=604800; SameSite=Lax${isSecure}`
-    document.cookie = `viracis_user_email=${encodeURIComponent(resolvedEmail)}; path=/; max-age=604800; SameSite=Lax${isSecure}`
+
+    document.cookie = `viracis_dev_auth=authenticated; path=/${domainAttr}; max-age=604800; SameSite=Lax${isSecure}`
+    document.cookie = `viracis_user_email=${encodeURIComponent(resolvedEmail)}; path=/${domainAttr}; max-age=604800; SameSite=Lax${isSecure}`
 
     try {
       await setAuthCookies(resolvedEmail)
@@ -43,8 +46,9 @@ export default function LoginPage() {
       console.error('Server cookie error:', e)
     }
 
-    // Relative browser navigation on current host domain
-    window.location.href = '/dashboard/clients'
+    // Direct single-step navigation straight to app.viracis.com dashboard
+    const targetUrl = isViracisDomain ? 'https://app.viracis.com/dashboard/clients' : '/dashboard/clients'
+    window.location.href = targetUrl
   }
 
 
