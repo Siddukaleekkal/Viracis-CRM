@@ -22,6 +22,54 @@ export interface MapPin {
   notes: string
 }
 
+export type MapStyleId = 'clean' | 'streets' | 'satellite' | 'osm'
+
+interface MapStyleConfig {
+  id: MapStyleId
+  name: string
+  label: string
+  icon: string
+  url: string
+  maxZoom: number
+  subdomains?: string
+}
+
+export const MAP_STYLES: Record<MapStyleId, MapStyleConfig> = {
+  clean: {
+    id: 'clean',
+    name: 'Clean Topo',
+    label: 'Clean',
+    icon: '🗺️',
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+    maxZoom: 19,
+  },
+  streets: {
+    id: 'streets',
+    name: 'Streets',
+    label: 'Streets',
+    icon: '🛣️',
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+    maxZoom: 19,
+  },
+  satellite: {
+    id: 'satellite',
+    name: 'Satellite',
+    label: 'Satellite',
+    icon: '🛰️',
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    maxZoom: 19,
+  },
+  osm: {
+    id: 'osm',
+    name: 'OpenStreetMap',
+    label: 'OSM',
+    icon: '🌐',
+    url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    maxZoom: 19,
+    subdomains: 'abc',
+  },
+}
+
 const initialPinsData: MapPin[] = []
 
 // Reverse Geocoding Helper Function
@@ -30,6 +78,7 @@ const fetchAddressFromCoords = async (lat: number, lng: number) => {
     const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`, {
       headers: {
         'Accept-Language': 'en',
+        'User-Agent': 'ViracisWizardWashCRM/1.0 (contact@viracis.com)',
       },
     })
     if (res.ok) {
@@ -62,6 +111,10 @@ export default function AppleMapComponent() {
   const mapInstanceRef = useRef<L.Map | null>(null)
   const [mapInstance, setMapInstance] = useState<L.Map | null>(null)
   const markersRef = useRef<{ [key: string]: L.Marker }>({})
+  const activeTileLayerRef = useRef<L.TileLayer | null>(null)
+
+  const [activeMapStyle, setActiveMapStyle] = useState<MapStyleId>('clean')
+  const [isLayerMenuOpen, setIsLayerMenuOpen] = useState<boolean>(false)
 
   const [pins, setPins] = useState<MapPin[]>(initialPinsData)
   const [selectedPin, setSelectedPin] = useState<MapPin | null>(null) // None selected initially
@@ -339,6 +392,26 @@ const geocodeVirginiaAddress = (addressStr: string, cityZipStr: string, nameStr:
     return matchesStatus && matchesSearch
   })
 
+  // Handle map style switching without requiring an API key
+  const handleSelectMapStyle = (styleId: MapStyleId) => {
+    setActiveMapStyle(styleId)
+    const map = mapInstanceRef.current
+    if (!map) return
+
+    if (activeTileLayerRef.current) {
+      map.removeLayer(activeTileLayerRef.current)
+    }
+
+    const cfg = MAP_STYLES[styleId]
+    const newLayer = L.tileLayer(cfg.url, {
+      maxZoom: cfg.maxZoom,
+      subdomains: cfg.subdomains || 'abc',
+    }).addTo(map)
+
+    newLayer.bringToBack()
+    activeTileLayerRef.current = newLayer
+  }
+
   // Initialize Map
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return
@@ -350,14 +423,18 @@ const geocodeVirginiaAddress = (addressStr: string, cityZipStr: string, nameStr:
       attributionControl: false,
     })
 
-    // Apple Maps vector light basemap tile
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-      maxZoom: 19,
-      subdomains: 'abcd',
+    // High quality keyless basemap (no API key required)
+    const cfg = MAP_STYLES[activeMapStyle] || MAP_STYLES.clean
+    const initialTileLayer = L.tileLayer(cfg.url, {
+      maxZoom: cfg.maxZoom,
+      subdomains: cfg.subdomains || 'abc',
     }).addTo(map)
+    initialTileLayer.bringToBack()
+    activeTileLayerRef.current = initialTileLayer
 
     // Map Click Listener to Add Property at clicked house / coordinate
     map.on('click', async (e: L.LeafletMouseEvent) => {
+      setIsLayerMenuOpen(false)
       const { lat, lng } = e.latlng
       setClickedLatLng({ lat, lng })
       setIsGeocoding(true)
@@ -611,7 +688,7 @@ const geocodeVirginiaAddress = (addressStr: string, cityZipStr: string, nameStr:
       {/* Leaflet Map Canvas */}
       <div ref={mapRef} className="absolute inset-0 z-0 w-full h-full cursor-crosshair" />
 
-      {/* Floating Action Buttons (Zoom & Recenter) */}
+      {/* Floating Action Buttons (Zoom, Recenter, & Map Style Switcher) */}
       <div className="absolute right-4 top-24 z-[1000] flex flex-col gap-2 pointer-events-auto">
         <button
           onClick={recenterMap}
@@ -638,6 +715,53 @@ const geocodeVirginiaAddress = (addressStr: string, cityZipStr: string, nameStr:
           >
             −
           </button>
+        </div>
+
+        {/* Map Layers Switcher (Keyless high-res map styles) */}
+        <div className="relative">
+          <button
+            onClick={() => setIsLayerMenuOpen((prev) => !prev)}
+            title="Switch Map Style"
+            className={`w-10 h-10 bg-white/90 backdrop-blur-xl border border-white/70 rounded-2xl shadow-lg flex items-center justify-center hover:bg-white transition-all text-sm font-bold active:scale-95 ${
+              isLayerMenuOpen ? 'ring-2 ring-blue-600 text-blue-600' : 'text-gray-700'
+            }`}
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+            </svg>
+          </button>
+
+          {isLayerMenuOpen && (
+            <div className="absolute right-12 top-0 bg-white/95 backdrop-blur-xl border border-gray-200/80 shadow-2xl rounded-2xl p-2 flex flex-col gap-1 w-44 animate-in fade-in slide-in-from-right-2 duration-150">
+              <div className="px-2 py-1 text-[10px] font-extrabold text-gray-400 uppercase tracking-wider border-b border-gray-100 mb-0.5">
+                Map View Style
+              </div>
+              {(Object.keys(MAP_STYLES) as MapStyleId[]).map((styleKey) => {
+                const style = MAP_STYLES[styleKey]
+                const isActive = activeMapStyle === styleKey
+                return (
+                  <button
+                    key={styleKey}
+                    onClick={() => {
+                      handleSelectMapStyle(styleKey)
+                      setIsLayerMenuOpen(false)
+                    }}
+                    className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all text-left ${
+                      isActive
+                        ? 'bg-slate-900 text-white shadow-sm font-bold'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    <span className="text-sm shrink-0">{style.icon}</span>
+                    <span className="truncate">{style.name}</span>
+                    {isActive && (
+                      <span className="ml-auto w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+          )}
         </div>
       </div>
 
