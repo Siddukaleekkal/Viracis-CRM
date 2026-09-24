@@ -126,3 +126,51 @@ CREATE POLICY "Tenant isolation for map_pins" ON public.map_pins
 
 CREATE POLICY "Tenant isolation for dispatch_jobs" ON public.dispatch_jobs
   USING (tenant_id IN (SELECT tenant_id FROM public.users WHERE id = auth.uid()));
+
+-- 11. Automatic Profile & Tenant Provisioning for OAuth (Google) & New Registrations
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+DECLARE
+  target_tenant_id UUID;
+BEGIN
+  -- 1. Determine target tenant based on user email domain
+  IF NEW.email ILIKE '%wizardwash%' THEN
+    SELECT id INTO target_tenant_id FROM public.tenants WHERE slug = 'wizardwash' LIMIT 1;
+  ELSE
+    SELECT id INTO target_tenant_id FROM public.tenants WHERE slug = 'viracis' LIMIT 1;
+  END IF;
+
+  -- 2. Fallback to any active tenant if specific slug was not found
+  IF target_tenant_id IS NULL THEN
+    SELECT id INTO target_tenant_id FROM public.tenants ORDER BY created_at ASC LIMIT 1;
+  END IF;
+
+  -- 3. Provision record in public.users to satisfy RLS foreign keys
+  IF target_tenant_id IS NOT NULL THEN
+    INSERT INTO public.users (id, tenant_id, email, full_name, role)
+    VALUES (
+      NEW.id,
+      target_tenant_id,
+      NEW.email,
+      COALESCE(
+        NEW.raw_user_meta_data->>'full_name',
+        NEW.raw_user_meta_data->>'name',
+        NEW.raw_user_meta_data->>'preferred_username',
+        split_part(NEW.email, '@', 1)
+      ),
+      'owner'
+    )
+    ON CONFLICT (id) DO UPDATE
+    SET email = EXCLUDED.email,
+        full_name = COALESCE(EXCLUDED.full_name, public.users.full_name);
+  END IF;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Trigger to execute automatically upon every auth.users creation
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();

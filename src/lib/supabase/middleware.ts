@@ -7,6 +7,7 @@ export async function updateSession(request: NextRequest) {
   })
 
   const devAuth = request.cookies.get('viracis_dev_auth')?.value === 'authenticated'
+  const cookieEmail = request.cookies.get('viracis_user_email')?.value
 
   let user = null
   if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
@@ -48,7 +49,35 @@ export async function updateSession(request: NextRequest) {
     }
   }
 
-  const isAuthenticated = devAuth || !!user
+  const host = request.headers.get('host') || ''
+  const isViracisDomain = host.includes('viracis.com')
+  const domain = isViracisDomain ? '.viracis.com' : undefined
+
+  // If user is authenticated via Supabase session, sync the tenant cookies
+  if (user?.email) {
+    if (!cookieEmail) {
+      supabaseResponse.cookies.set('viracis_user_email', user.email, {
+        path: '/',
+        domain,
+        httpOnly: false,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24 * 7,
+      })
+    }
+    if (!devAuth) {
+      supabaseResponse.cookies.set('viracis_dev_auth', 'authenticated', {
+        path: '/',
+        domain,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24 * 7,
+      })
+    }
+  }
+
+  const isAuthenticated = devAuth || !!cookieEmail || !!user
 
   // Protect the dashboard route: redirect to /login if not authenticated
   if (request.nextUrl.pathname.startsWith('/dashboard') && !isAuthenticated) {
