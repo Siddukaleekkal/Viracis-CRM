@@ -1,17 +1,18 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import Image from 'next/image'
-import { loginAdminAction } from './actions'
-
-const ADMIN_EMAIL = 'admin@viracis.com'
+import { setAuthCookies } from './actions'
+import { createClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {
-  const [username, setUsername] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
+  const [microsoftLoading, setMicrosoftLoading] = useState(false)
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -20,230 +21,268 @@ export default function LoginPage() {
       }
 
       const params = new URLSearchParams(window.location.search)
-      const errParam = params.get('error')
-      if (errParam === 'oauth_disabled' || errParam === 'disabled') {
-        setError('Public and third-party logins have been disabled. Access is restricted to the administrator.')
-      } else if (errParam === 'oauth_failed') {
-        setError('Sign-in failed. Please sign in with your administrator credentials.')
+      if (params.get('error') === 'oauth_failed') {
+        setError('Sign-in could not be completed. Please try again or sign in with your email.')
+      } else if (params.get('error') === 'oauth_disabled' || params.get('error') === 'disabled') {
+        setError('Login is restricted. Please sign in with your administrator email and password.')
       }
     }
   }, [])
 
+  const handleGoogleLogin = async () => {
+    setError('Third-party logins are disabled. Please sign in with your administrator email and password.')
+  }
+
+  const handleMicrosoftLogin = async () => {
+    setError('Third-party logins are disabled. Please sign in with your administrator email and password.')
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    setLoading(true)
 
-    const cleanUsername = username.trim()
-    const cleanPassword = password.trim()
+    const emailTrimmed = email.trim().toLowerCase()
+    const passwordTrimmed = password.trim()
 
-    if (!cleanUsername || !cleanPassword) {
-      setError('Please enter both your administrator username and password.')
+    if (!emailTrimmed || !passwordTrimmed) {
+      setError('Please enter your email address and password.')
+      setLoading(false)
       return
     }
 
-    setLoading(true)
+    const isValidUser = emailTrimmed === 'admin@viracis.com' || emailTrimmed === 'admin'
+    const isValidPassword = passwordTrimmed === 'Sidpav2003!@$'
+
+    if (!isValidUser || !isValidPassword) {
+      setError('Invalid email or password.')
+      setLoading(false)
+      return
+    }
+
+    const resolvedEmail = 'admin@viracis.com'
+
+    // Set client cookies with domain=.viracis.com for cross-subdomain authentication
+    const isViracisDomain = typeof window !== 'undefined' && window.location.hostname.includes('viracis.com')
+    const domainAttr = isViracisDomain ? '; domain=.viracis.com' : ''
+    const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:' ? '; Secure' : ''
+
+    document.cookie = `viracis_dev_auth=authenticated; path=/${domainAttr}; max-age=604800; SameSite=Lax${isSecure}`
+    document.cookie = `viracis_user_email=${encodeURIComponent(resolvedEmail)}; path=/${domainAttr}; max-age=604800; SameSite=Lax${isSecure}`
 
     try {
-      const res = await loginAdminAction(cleanUsername, cleanPassword)
-
-      if (!res.success) {
-        setError(res.error || 'Invalid credentials. Access restricted to administrator.')
-        setLoading(false)
-        return
-      }
-
-      // Sync client-side cookies for cross-subdomain authentication on viracis.com
-      const isViracisDomain = typeof window !== 'undefined' && window.location.hostname.includes('viracis.com')
-      const domainAttr = isViracisDomain ? '; domain=.viracis.com' : ''
-      const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:' ? '; Secure' : ''
-
-      document.cookie = `viracis_dev_auth=authenticated; path=/${domainAttr}; max-age=604800; SameSite=Lax${isSecure}`
-      document.cookie = `viracis_user_email=${encodeURIComponent(ADMIN_EMAIL)}; path=/${domainAttr}; max-age=604800; SameSite=Lax${isSecure}`
-
-      // Redirect straight to CRM dashboard
-      const targetUrl = isViracisDomain && !window.location.hostname.startsWith('app.')
-        ? 'https://app.viracis.com/dashboard/clients'
-        : '/dashboard/clients'
-      window.location.href = targetUrl
-    } catch (err: any) {
-      setError(err?.message || 'Authentication error occurred. Please try again.')
-      setLoading(false)
+      await setAuthCookies(resolvedEmail)
+    } catch (e) {
+      console.error('Server cookie error:', e)
     }
+
+    // Direct single-step navigation straight to app.viracis.com dashboard
+    const targetUrl = isViracisDomain ? 'https://app.viracis.com/dashboard/clients' : '/dashboard/clients'
+    window.location.href = targetUrl
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative bg-[#090D16] overflow-hidden font-sans">
+    <div className="min-h-screen flex items-center justify-center relative bg-[#FAFAFA] overflow-hidden font-sans">
       
-      {/* Ambient background glows */}
-      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-20%] left-[-15%] w-[60vw] h-[60vw] bg-blue-600/10 rounded-full blur-[140px]" />
-        <div className="absolute bottom-[-20%] right-[-15%] w-[60vw] h-[60vw] bg-indigo-500/10 rounded-full blur-[160px]" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40vw] h-[40vw] bg-cyan-500/5 rounded-full blur-[120px]" />
-        {/* Subtle grid pattern overlay */}
-        <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.06)_1px,transparent_1px)] [background-size:24px_24px] opacity-40" />
+      {/* Premium Enterprise Background Elements */}
+      <div className="absolute inset-0 z-0">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[50%] bg-blue-500/10 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[50%] bg-slate-900/5 rounded-full blur-[120px] pointer-events-none" />
       </div>
 
-      {/* Main Container */}
-      <div className="relative z-10 w-full max-w-[440px] p-6 sm:p-8">
+      {/* Login Card */}
+      <div className="relative z-10 w-full max-w-[440px] p-6 sm:p-10">
         
-        {/* Logo */}
         <div className="flex justify-center mb-8">
-          <a href="https://viracis.com" className="inline-block transition-transform hover:scale-[1.02] active:scale-[0.98]">
+          <a href="https://viracis.com">
             <Image
               src="/viracis-logo.png"
               alt="Viracis"
               width={160}
               height={50}
-              className="h-10 w-auto object-contain brightness-0 invert drop-shadow-[0_2px_12px_rgba(255,255,255,0.15)]"
+              className="h-9 w-auto object-contain hover:opacity-90 transition-opacity"
               priority
             />
           </a>
         </div>
 
-        {/* Card */}
-        <div className="bg-slate-900/80 backdrop-blur-2xl border border-slate-800/80 shadow-[0_24px_64px_-12px_rgba(0,0,0,0.7)] rounded-2xl p-7 sm:p-9 relative">
+        <div className="bg-white/80 backdrop-blur-xl border border-gray-200/60 shadow-[0_8px_40px_-12px_rgba(0,0,0,0.1)] rounded-2xl p-8 sm:p-10">
           
-          {/* Admin badge */}
-          <div className="flex justify-center mb-4">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold tracking-wider uppercase bg-blue-500/10 border border-blue-500/20 text-blue-400">
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
-              Admin Portal
-            </span>
-          </div>
-
           <div className="mb-6 text-center">
-            <h1 className="text-[22px] font-semibold text-white tracking-tight mb-1.5">
-              Sign In to Viracis CRM
+            <h1 className="text-[22px] font-semibold text-gray-900 tracking-tight mb-1.5">
+              Sign in to Viracis
             </h1>
-            <p className="text-[13px] text-slate-400">
-              Restricted portal for authorized system administrators
+            <p className="text-[14px] text-gray-500">
+              Welcome back to your workspace
             </p>
           </div>
 
           {error && (
-            <div className="mb-5 p-3.5 bg-red-500/10 border border-red-500/30 text-red-300 text-[13px] rounded-xl flex items-start gap-2.5 animate-fadeIn">
-              <svg className="w-4 h-4 shrink-0 text-red-400 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            <div className="mb-5 p-3 bg-red-50 text-red-600 text-[13px] rounded-lg border border-red-100 flex items-center gap-2">
+              <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span>{error}</span>
+              {error}
             </div>
           )}
 
+          {/* OAuth Providers */}
+          <div className="space-y-2.5">
+            {/* Continue with Google */}
+            <button
+              type="button"
+              onClick={handleGoogleLogin}
+              disabled={googleLoading || microsoftLoading || loading}
+              className="w-full py-2.5 px-4 bg-white hover:bg-gray-50/90 border border-gray-200 rounded-lg text-[14px] font-medium text-gray-700 shadow-sm hover:shadow transition-all flex items-center justify-center gap-3 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed group active:scale-[0.99]"
+            >
+              {googleLoading ? (
+                <div className="flex items-center gap-2">
+                  <svg className="animate-spin h-4 w-4 text-gray-500" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>Connecting to Google...</span>
+                </div>
+              ) : (
+                <>
+                  <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+                    <path
+                      fill="#4285F4"
+                      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                    />
+                    <path
+                      fill="#34A853"
+                      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                    />
+                    <path
+                      fill="#FBBC05"
+                      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                    />
+                    <path
+                      fill="#EA4335"
+                      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                    />
+                  </svg>
+                  <span>Continue with Google</span>
+                </>
+              )}
+            </button>
+
+            {/* Continue with Microsoft */}
+            <button
+              type="button"
+              onClick={handleMicrosoftLogin}
+              disabled={googleLoading || microsoftLoading || loading}
+              className="w-full py-2.5 px-4 bg-white hover:bg-gray-50/90 border border-gray-200 rounded-lg text-[14px] font-medium text-gray-700 shadow-sm hover:shadow transition-all flex items-center justify-center gap-3 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed group active:scale-[0.99]"
+            >
+              {microsoftLoading ? (
+                <div className="flex items-center gap-2">
+                  <svg className="animate-spin h-4 w-4 text-gray-500" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>Connecting to Microsoft...</span>
+                </div>
+              ) : (
+                <>
+                  <svg className="w-4 h-4 shrink-0" viewBox="0 0 21 21">
+                    <rect x="1" y="1" width="9" height="9" fill="#f25022"/>
+                    <rect x="11" y="1" width="9" height="9" fill="#7fba00"/>
+                    <rect x="1" y="11" width="9" height="9" fill="#00a4ef"/>
+                    <rect x="11" y="11" width="9" height="9" fill="#ffb900"/>
+                  </svg>
+                  <span>Continue with Microsoft</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Divider */}
+          <div className="relative my-6 flex items-center justify-center">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-200/80" />
+            </div>
+            <div className="relative px-3 bg-white text-[11px] text-gray-400 font-semibold tracking-wider uppercase">
+              Or sign in with email
+            </div>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
             <div className="space-y-1.5">
-              <label className="block text-[13px] font-medium text-slate-300" htmlFor="username">
-                Admin Username or Email
+              <label className="block text-[13px] font-medium text-gray-700" htmlFor="email">
+                Email address
               </label>
-              <div className="relative">
-                <input
-                  id="username"
-                  name="username"
-                  type="text"
-                  required
-                  autoCapitalize="none"
-                  autoCorrect="off"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-950/60 border border-slate-800 rounded-xl text-[14px] text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all shadow-inner"
-                  placeholder="admin@viracis.com"
-                />
-              </div>
+              <input
+                id="email"
+                name="email"
+                type="text"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="off"
+                className="w-full px-3.5 py-2.5 bg-white border border-gray-200/80 rounded-lg text-[14px] text-gray-900 focus:ring-2 focus:ring-slate-900/20 focus:border-slate-900 transition-all outline-none shadow-sm placeholder:text-gray-400"
+                placeholder="name@example.com"
+              />
             </div>
 
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <label className="block text-[13px] font-medium text-slate-300" htmlFor="password">
+                <label className="block text-[13px] font-medium text-gray-700" htmlFor="password">
                   Password
                 </label>
+                <a href="#" className="text-[13px] font-medium text-gray-500 hover:text-slate-900 transition-colors">
+                  Forgot password?
+                </a>
               </div>
-              <div className="relative">
-                <input
-                  id="password"
-                  name="password"
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  autoComplete="current-password"
-                  className="w-full pl-3.5 pr-10 py-2.5 bg-slate-950/60 border border-slate-800 rounded-xl text-[14px] text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 transition-all shadow-inner"
-                  placeholder="••••••••"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 focus:outline-none"
-                >
-                  {showPassword ? (
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
-                    </svg>
-                  ) : (
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                  )}
-                </button>
-              </div>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
+                className="w-full px-3.5 py-2.5 bg-white border border-gray-200/80 rounded-lg text-[14px] text-gray-900 focus:ring-2 focus:ring-slate-900/20 focus:border-slate-900 transition-all outline-none shadow-sm placeholder:text-gray-400"
+                placeholder="••••••••"
+              />
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-2 py-3 px-4 bg-blue-600 hover:bg-blue-500 active:scale-[0.99] text-white text-[14px] font-semibold rounded-xl shadow-lg shadow-blue-600/25 transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full py-2.5 px-4 bg-gray-900 text-white text-[14px] font-medium rounded-lg shadow-sm hover:bg-gray-800 focus:ring-2 focus:ring-gray-900/20 focus:outline-none transition-all mt-2 cursor-pointer disabled:opacity-50"
             >
-              {loading ? (
-                <>
-                  <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24" fill="none">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  <span>Authenticating...</span>
-                </>
-              ) : (
-                <>
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-                  </svg>
-                  <span>Sign In as Admin</span>
-                </>
-              )}
+              {loading ? 'Signing in...' : 'Sign in'}
             </button>
           </form>
 
-          {/* Secure access advisory */}
-          <div className="mt-6 pt-5 border-t border-slate-800/80 flex items-center gap-2.5 text-[12px] text-slate-400">
-            <svg className="w-4 h-4 text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-            </svg>
-            <span>Single administrator access enforced. Other logins are disabled.</span>
-          </div>
-
         </div>
 
-        {/* Footer */}
-        <div className="mt-8 text-center space-y-2">
-          <p className="text-[12px] text-slate-400">
-            Viracis CRM Enterprise Operations • Richmond, VA
+        <div className="mt-7 text-center space-y-4">
+          <p className="text-[14px] text-gray-500">
+            Don't have an account?{' '}
+            <a
+              href="https://viracis.com/signup"
+              className="font-medium text-gray-900 underline underline-offset-2 hover:text-gray-700 transition-colors"
+            >
+              Sign Up
+            </a>
           </p>
-          <div className="flex items-center justify-center gap-5 text-[12px] text-slate-400">
+
+          <div className="flex items-center justify-center gap-6 text-[13px] text-gray-500">
             <a
               href="https://viracis.com/terms"
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-slate-200 transition-colors"
+              className="hover:text-gray-900 transition-colors"
             >
               Terms of Service
             </a>
-            <span>•</span>
             <a
               href="https://viracis.com/privacy"
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-slate-200 transition-colors"
+              className="hover:text-gray-900 transition-colors"
             >
               Privacy Policy
             </a>
