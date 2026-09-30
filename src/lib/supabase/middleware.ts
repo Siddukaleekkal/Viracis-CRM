@@ -1,13 +1,15 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+const ADMIN_EMAIL = 'admin@viracis.com'
+
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
   })
 
   const devAuth = request.cookies.get('viracis_dev_auth')?.value === 'authenticated'
-  const cookieEmail = request.cookies.get('viracis_user_email')?.value
+  const cookieEmail = request.cookies.get('viracis_user_email')?.value?.toLowerCase()
 
   let user = null
   if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
@@ -53,36 +55,29 @@ export async function updateSession(request: NextRequest) {
   const isViracisDomain = host.includes('viracis.com')
   const domain = isViracisDomain ? '.viracis.com' : undefined
 
-  // If user is authenticated via Supabase session, sync the tenant cookies
-  if (user?.email) {
-    if (!cookieEmail) {
-      supabaseResponse.cookies.set('viracis_user_email', user.email, {
-        path: '/',
-        domain,
-        httpOnly: false,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 7,
-      })
-    }
-    if (!devAuth) {
-      supabaseResponse.cookies.set('viracis_dev_auth', 'authenticated', {
-        path: '/',
-        domain,
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 7,
-      })
+  // Strict check: only admin@viracis.com is authorized to access the CRM
+  const isAdminSession =
+    (devAuth && cookieEmail === ADMIN_EMAIL) ||
+    (user?.email?.toLowerCase() === ADMIN_EMAIL)
+
+  // Protect the dashboard route: redirect to /login if not authenticated as admin
+  if (request.nextUrl.pathname.startsWith('/dashboard')) {
+    if (!isAdminSession) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/login'
+      const redirectResponse = NextResponse.redirect(url)
+
+      // Clear any invalid, non-admin, or stale session cookies
+      redirectResponse.cookies.set('viracis_dev_auth', '', { path: '/', domain, maxAge: 0 })
+      redirectResponse.cookies.set('viracis_user_email', '', { path: '/', domain, maxAge: 0 })
+      return redirectResponse
     }
   }
 
-  const isAuthenticated = devAuth || !!cookieEmail || !!user
-
-  // Protect the dashboard route: redirect to /login if not authenticated
-  if (request.nextUrl.pathname.startsWith('/dashboard') && !isAuthenticated) {
+  // If already authenticated as admin and attempting to view /login, redirect directly to dashboard
+  if (request.nextUrl.pathname === '/login' && isAdminSession) {
     const url = request.nextUrl.clone()
-    url.pathname = '/login'
+    url.pathname = '/dashboard/clients'
     return NextResponse.redirect(url)
   }
 

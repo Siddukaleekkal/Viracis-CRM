@@ -48,16 +48,16 @@ export const TENANTS: Record<string, TenantConfig> = {
 }
 
 export function getTenantConfig(email?: string | null): TenantConfig {
-  if (!email) return TENANTS.wizardwash
+  if (!email) return TENANTS.viracis
   const normalized = email.trim().toLowerCase()
   if (normalized.includes('viracis.com') && !normalized.includes('wizardwash')) {
     return TENANTS.viracis
   }
-  return TENANTS.wizardwash
+  return TENANTS.viracis
 }
 
 export function getActiveTenantEmailFromCookie(): string {
-  if (typeof document === 'undefined') return 'omar@wizardwashva.com'
+  if (typeof document === 'undefined') return 'admin@viracis.com'
   const match = document.cookie.match(/(?:^|; )viracis_user_email=([^;]*)/)
-  return match ? decodeURIComponent(match[1]) : 'omar@wizardwashva.com'
+  return match ? decodeURIComponent(match[1]) : 'admin@viracis.com'
 }
