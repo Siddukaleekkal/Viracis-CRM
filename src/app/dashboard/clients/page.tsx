@@ -1207,7 +1207,7 @@ export default function CustomersPage() {
                     required
                     value={scheduleDateInput}
                     onChange={(e) => setScheduleDateInput(e.target.value)}
-                    className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 outline-none focus:ring-2 focus:ring-slate-900 font-semibold"
+                    className="w-full max-w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 outline-none focus:ring-2 focus:ring-slate-900 font-semibold min-w-0 box-border"
                   />
                 </div>
 
@@ -1399,7 +1399,7 @@ export default function CustomersPage() {
         {/* Add Client Modal */}
         {isModalOpen && (
           <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 pb-16 md:pb-4">
-            <div className="bg-white rounded-2xl p-4 sm:p-5 max-w-md w-full shadow-2xl space-y-2.5 my-auto">
+            <div className="bg-white rounded-2xl p-4 sm:p-5 max-w-md w-full shadow-2xl space-y-2.5 my-auto max-h-[calc(100dvh-5rem)] overflow-y-auto">
               <div className="flex items-center justify-between border-b border-slate-100 pb-2">
                 <h2 className="text-sm font-bold text-slate-900">Add New Client</h2>
                 <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600 text-base font-bold">
@@ -1453,7 +1453,7 @@ export default function CustomersPage() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-2.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   <div className="min-w-0">
                     <label className="block text-[10px] font-bold text-slate-700 uppercase mb-0.5">Service Type</label>
                     <select
@@ -1494,7 +1494,7 @@ export default function CustomersPage() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-2.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   <div className="min-w-0">
                     <label className="block text-[10px] font-bold text-slate-700 uppercase mb-0.5">Account Status</label>
                     <select
@@ -1513,7 +1513,7 @@ export default function CustomersPage() {
                       type="date"
                       value={newCustomer.serviceDate}
                       onChange={(e) => setNewCustomer({ ...newCustomer, serviceDate: e.target.value })}
-                      className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 outline-none focus:ring-2 focus:ring-slate-900 font-semibold min-w-0"
+                      className="w-full max-w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 outline-none focus:ring-2 focus:ring-slate-900 font-semibold min-w-0 box-border"
                     />
                   </div>
                 </div>

@@ -38,6 +38,21 @@ body {
   }
 }
 
+/* Ensure date inputs never overflow their container and format cleanly across mobile WebKit browsers */
+input[type="date"] {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  display: block;
+}
+
+input[type="date"]::-webkit-date-and-time-value {
+  text-align: left;
+  min-height: 1.25em;
+}
+
+
 /* Enterprise Blog Typography */
 .article-content {
   line-height: 1.8;

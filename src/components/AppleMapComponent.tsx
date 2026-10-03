@@ -844,7 +844,7 @@ const geocodeVirginiaAddress = (addressStr: string, cityZipStr: string, nameStr:
                   type="date"
                   value={selectedDateSync}
                   onChange={(e) => setSelectedDateSync(e.target.value)}
-                  className="px-2.5 py-1.5 bg-white border border-blue-200 rounded-xl text-xs font-semibold text-gray-900 outline-none focus:ring-2 focus:ring-blue-600 flex-1 min-w-0"
+                  className="px-2.5 py-1.5 bg-white border border-blue-200 rounded-xl text-xs font-semibold text-gray-900 outline-none focus:ring-2 focus:ring-blue-600 flex-1 min-w-0 max-w-full box-border"
                 />
                 <select
                   value={selectedTruckSync}
